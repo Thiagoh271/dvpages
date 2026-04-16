@@ -176,6 +176,15 @@ function showEditor() {
   if (badge) badge.removeAttribute('readonly');
 }
 
+function openEmptyEditor() {
+  pushHistory();
+  currentFilename = 'sem-titulo.html';
+  document.getElementById('filename-badge').value = currentFilename;
+  editor.setValue('', -1);
+  syncPreview('');
+  showEditor();
+}
+
 function renameFile(val) {
   val = val.trim();
   if (!val) val = currentFilename || 'pagina.html';
