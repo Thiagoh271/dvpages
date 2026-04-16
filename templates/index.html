@@ -107,7 +107,7 @@
   <div class="divider"></div>
   <div class="divider"></div>
   <button class="btn" id="btn-ai-bridge" onclick="toggleAiBridge()" title="AI Bridge — edite elementos com IA">✦ IA</button>
-  <span id="filename-badge">—</span>
+  <input id="filename-badge" class="filename-input" value="—" title="Clique para renomear" onclick="this.select()" onblur="renameFile(this.value)" onkeydown="if(event.key==='Enter'){this.blur()} if(event.key==='Escape'){this.value=currentFilename||'—';this.blur()}" readonly>
   <span id="status-msg"></span>
   {% if user_email %}
   <div class="divider"></div>

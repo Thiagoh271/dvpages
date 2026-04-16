@@ -374,12 +374,19 @@ label.drop-action { text-align: center; }
   background: var(--surface2);
   border-radius: 5px;
   border: 1px solid var(--border);
-  max-width: 180px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  max-width: 200px;
   font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  cursor: text;
+  transition: border-color 0.15s, color 0.15s;
 }
+#filename-badge:focus {
+  border-color: var(--accent2);
+  color: var(--text);
+  box-shadow: 0 0 0 2px rgba(91,110,245,0.15);
+}
+#filename-badge[readonly] { cursor: default; }
 
 .toolbar-label {
   font-size: 11px;

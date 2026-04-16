@@ -63,7 +63,7 @@ function loadFromPaste() {
   hidePastePanel();
   pushHistory();
   currentFilename = 'pagina.html';
-  document.getElementById('filename-badge').textContent = currentFilename;
+  document.getElementById('filename-badge').value = currentFilename;
   var processed = injectEditIds(html);
   editor.setValue(processed, -1);
   syncPreview(processed);
@@ -152,7 +152,7 @@ function uploadFile(file) {
   reader.onload = function(e) {
     pushHistory();
     currentFilename = file.name;
-    document.getElementById('filename-badge').textContent = file.name;
+    document.getElementById('filename-badge').value = file.name;
     var html = injectEditIds(e.target.result);
     editor.setValue(html, -1);
     syncPreview(html);
@@ -172,6 +172,18 @@ function showEditor() {
     bridge.classList.remove('hidden');
     if (btn) btn.classList.add('active');
   }
+  var badge = document.getElementById('filename-badge');
+  if (badge) badge.removeAttribute('readonly');
+}
+
+function renameFile(val) {
+  val = val.trim();
+  if (!val) val = currentFilename || 'pagina.html';
+  if (!val.match(/\.html?$/i)) val += '.html';
+  currentFilename = val;
+  document.getElementById('filename-badge').value = val;
+  setStatus('Renomeado para ' + val, 'ok');
+  setTimeout(function() { setStatus('', ''); }, 2000);
 }
 
 // ── INJECT EDIT IDS ──
@@ -700,7 +712,7 @@ function loadCloudFile(id, filename) {
     if (d.html) {
       pushHistory();
       currentFilename = d.filename || filename;
-      document.getElementById('filename-badge').textContent = currentFilename;
+      document.getElementById('filename-badge').value = currentFilename;
       var processed = injectEditIds(d.html);
       editor.setValue(processed, -1);
       syncPreview(processed);
