@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DvPages</title>
+<link rel="stylesheet" href="/static/style.css">
+
+<!-- Ace Editor via CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/ace.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/ext-searchbox.min.js"></script>
+</head>
+<body>
+
+<!-- ── DROPZONE ── -->
+<div id="dropzone">
+  <div class="drop-card" id="drop-card">
+
+    <!-- Logo + tagline -->
+    <div class="drop-brand">
+      <div class="drop-logo">Dv<span>Pages</span></div>
+      <div class="drop-tagline">Editor visual de páginas HTML</div>
+    </div>
+
+    <!-- Ações principais -->
+    <div class="drop-actions">
+      <label class="drop-action" id="drop-open-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span>Abrir arquivo</span>
+        <small>.html · .htm</small>
+        <input type="file" id="file-input" accept=".html,.htm,.txt" style="display:none">
+      </label>
+      <button class="drop-action" onclick="showPastePanel()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+        <span>Colar HTML</span>
+        <small>Ctrl+V</small>
+      </button>
+    </div>
+
+    <!-- Drop area hint -->
+    <div class="drop-hint">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+      ou arraste um arquivo .html aqui
+    </div>
+
+    <!-- Separador -->
+    <div class="drop-sep"></div>
+
+    <!-- Modelo padrão -->
+    <button class="drop-template-btn" onclick="showTemplateModal()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Ver Modelo Padrão VSL
+    </button>
+
+  </div>
+</div>
+
+<!-- Paste panel -->
+<div id="paste-panel" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:400;display:none">
+  <div style="background:#18181f;border:1px solid #2a2a35;border-radius:12px;padding:24px;width:600px;max-width:90vw">
+    <h3 style="font-size:15px;color:#fff;margin-bottom:8px">Colar HTML</h3>
+    <p style="font-size:12px;color:#555;margin-bottom:12px">Cole aqui o HTML gerado pelo Claude ou qualquer IA</p>
+    <textarea id="paste-input" style="width:100%;height:200px;background:#0d0d15;border:1px solid #2a2a35;border-radius:6px;padding:10px;color:#a8ff78;font-family:monospace;font-size:12px;outline:none;resize:vertical" placeholder="&lt;!DOCTYPE html&gt;..."></textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button class="btn" onclick="hidePastePanel()">Cancelar</button>
+      <button class="btn primary" onclick="loadFromPaste()">Carregar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOOLBAR ── -->
+<div id="toolbar">
+  <span class="logo">Dv<span>Pages</span></span>
+  <div class="divider"></div>
+  <button class="btn" onclick="showTemplateModal()" title="Template VSL para funcionários">Modelo Padrão</button>
+  <div class="divider"></div>
+  <button class="btn" onclick="openFile()">Abrir</button>
+  <input type="file" id="file-input2" accept=".html,.htm" style="display:none">
+  <button class="btn" onclick="forceRefreshPreview()" title="F5">Atualizar preview</button>
+  <div class="divider"></div>
+  <span class="toolbar-label">Timer:</span>
+  <input type="number" id="unfunnel-delay" class="toolbar-input" placeholder="∞" min="0" step="0.5" title="Delay em segundos para simular (vazio = instantâneo)">
+  <button class="btn" id="btn-unfunnel" onclick="toggleUnfunnelizer()" title="Mostrar página completa sem delays">Unfunnelizar</button>
+  <div class="divider"></div>
+  <button class="btn" id="btn-undo" onclick="undo()" title="Ctrl+Z — Desfazer última alteração" disabled>↩ Voltar</button>
+  <button class="btn primary" onclick="exportFile()">Exportar HTML</button>
+  <div class="divider"></div>
+  <div class="divider"></div>
+  <button class="btn" id="btn-ai-bridge" onclick="toggleAiBridge()" title="AI Bridge — edite elementos com IA">✦ IA</button>
+  <span id="filename-badge">—</span>
+  <span id="status-msg"></span>
+  {% if user_email %}
+  <div class="divider"></div>
+  <span class="user-badge" title="{{ user_email }}">{{ user_email }}</span>
+  <a href="/logout" class="btn btn-logout" title="Sair">Sair</a>
+  {% endif %}
+</div>
+
+<!-- ── MAIN ── -->
+<div id="main" class="hidden">
+
+  <!-- Code Editor -->
+  <div class="pane" id="editor-pane">
+    <div class="pane-header">
+      CÓDIGO
+      <span class="hint">Ctrl+F para buscar · Ctrl+H para substituir</span>
+    </div>
+    <div id="ace-editor" style="flex:1"></div>
+    <div id="breadcrumb">
+      <span style="color:#2a2a35">Clique em um elemento no preview →</span>
+    </div>
+
+    <!-- AI Bridge Panel -->
+    <div id="ai-bridge" class="hidden">
+      <div class="aib-element" id="aib-element-info">
+        <span class="aib-dot"></span>Clique em um elemento no preview para selecionar
+      </div>
+      <div class="aib-row">
+        <input type="text" id="aib-instruction" class="aib-input"
+          placeholder="Ex: muda esse botão pra verde com texto branco"
+          onkeydown="if(event.key==='Enter') prepareBridgePrompt()">
+        <button class="btn primary" onclick="prepareBridgePrompt()">Copiar prompt</button>
+      </div>
+      <div class="aib-open-row" id="aib-open-row">
+        <span class="aib-open-label">Abrir:</span>
+        <button class="aib-open-btn" onclick="window.open('https://claude.ai','_blank')">Claude</button>
+        <button class="aib-open-btn" onclick="window.open('https://chatgpt.com','_blank')">ChatGPT</button>
+        <button class="aib-open-btn" onclick="window.open('https://gemini.google.com','_blank')">Gemini</button>
+      </div>
+      <div class="aib-sep">↓ Cole o resultado da IA aqui</div>
+      <div class="aib-row">
+        <textarea id="aib-result" class="aib-textarea"
+          placeholder="Cole aqui o HTML retornado pelo Claude..."></textarea>
+        <button class="btn" id="btn-apply-bridge" onclick="applyBridgeResult()">Aplicar</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Preview -->
+  <div class="pane" id="preview-pane">
+    <div class="pane-header">
+      PREVIEW
+      <span class="hint">Clique em qualquer elemento para ir ao código</span>
+    </div>
+    <iframe
+      id="preview-frame"
+      sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+    ></iframe>
+  </div>
+
+</div>
+
+<!-- ── TEMPLATE MODAL ── -->
+<div id="template-modal" class="hidden">
+  <div class="tpl-overlay" onclick="hideTemplateModal()"></div>
+  <div class="tpl-card">
+    <div class="tpl-header">
+      <div>
+        <span class="tpl-title">Modelo Padrão VSL</span>
+        <span class="tpl-sub">Cole no início da conversa com o Claude antes de criar uma nova página</span>
+      </div>
+      <button class="tpl-close" onclick="hideTemplateModal()">✕</button>
+    </div>
+    <textarea id="template-content" class="tpl-textarea" readonly></textarea>
+    <div class="tpl-footer">
+      <span id="tpl-copy-msg" class="tpl-copy-msg"></span>
+      <button class="btn primary" onclick="copyTemplate()">Copiar template</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
