@@ -166,6 +166,12 @@ function uploadFile(file) {
 function showEditor() {
   document.getElementById('dropzone').classList.add('hidden');
   document.getElementById('main').classList.remove('hidden');
+  var bridge = document.getElementById('ai-bridge');
+  var btn = document.getElementById('btn-ai-bridge');
+  if (bridge && bridge.classList.contains('hidden')) {
+    bridge.classList.remove('hidden');
+    if (btn) btn.classList.add('active');
+  }
 }
 
 // ── INJECT EDIT IDS ──
@@ -614,6 +620,10 @@ function openFile() {
 }
 
 function exportFile() {
+  exportDownload();
+}
+
+function exportDownload() {
   var html = editor.getValue();
   var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
   var url = URL.createObjectURL(blob);
@@ -624,8 +634,97 @@ function exportFile() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  setStatus('Exportado!', 'ok');
+  closeExportMenu();
+  setStatus('Baixado!', 'ok');
 }
+
+function exportCopy() {
+  var html = editor.getValue();
+  navigator.clipboard.writeText(html).then(function() {
+    closeExportMenu();
+    setStatus('HTML copiado!', 'ok');
+    setTimeout(function() { setStatus('', ''); }, 2500);
+  });
+}
+
+function exportSave() {
+  var html = editor.getValue();
+  var filename = currentFilename || 'sem-titulo.html';
+  closeExportMenu();
+  fetch('/api/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ filename: filename, html: html })
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    if (d.ok) {
+      setStatus('Salvo na nuvem!', 'ok');
+      setTimeout(function() { setStatus('', ''); }, 2500);
+    } else {
+      setStatus('Erro ao salvar', 'err');
+    }
+  }).catch(function() {
+    setStatus('Sem conexão', 'err');
+  });
+}
+
+// ── MY FILES PANEL ──
+function openMyFiles() {
+  var panel = document.getElementById('myfiles-panel');
+  if (!panel) return;
+  panel.style.display = 'flex';
+  fetch('/api/files').then(function(r) { return r.json(); }).then(function(files) {
+    var list = document.getElementById('myfiles-list');
+    if (!list) return;
+    if (!files.length) {
+      list.innerHTML = '<div class="myfiles-empty">Nenhum arquivo salvo ainda.</div>';
+      return;
+    }
+    list.innerHTML = files.map(function(f) {
+      var date = new Date(f.updated_at).toLocaleDateString('pt-BR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+      return '<div class="myfiles-item" onclick="loadCloudFile(\'' + f.id + '\',\'' + f.filename.replace(/'/g,'') + '\')">' +
+        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
+        '<span class="myfiles-name">' + f.filename + '</span>' +
+        '<span class="myfiles-date">' + date + '</span>' +
+        '</div>';
+    }).join('');
+  });
+}
+
+function closeMyFiles() {
+  var panel = document.getElementById('myfiles-panel');
+  if (panel) panel.style.display = 'none';
+}
+
+function loadCloudFile(id, filename) {
+  fetch('/api/load/' + id).then(function(r) { return r.json(); }).then(function(d) {
+    if (d.html) {
+      pushHistory();
+      currentFilename = d.filename || filename;
+      document.getElementById('filename-badge').textContent = currentFilename;
+      var processed = injectEditIds(d.html);
+      editor.setValue(processed, -1);
+      syncPreview(processed);
+      showEditor();
+      closeMyFiles();
+      setStatus('Carregado da nuvem', 'ok');
+      setTimeout(function() { setStatus('', ''); }, 2500);
+    }
+  });
+}
+
+function toggleExportMenu(e) {
+  e.stopPropagation();
+  var wrap = document.getElementById('export-wrap');
+  if (wrap) wrap.classList.toggle('open');
+}
+function closeExportMenu() {
+  var wrap = document.getElementById('export-wrap');
+  if (wrap) wrap.classList.remove('open');
+}
+document.addEventListener('click', function(e) {
+  var wrap = document.getElementById('export-wrap');
+  if (wrap && !wrap.contains(e.target)) closeExportMenu();
+});
 
 function forceRefreshPreview() {
   syncPreview(editor.getValue());
@@ -993,5 +1092,21 @@ document.addEventListener('keydown', function (e) {
     document.getElementById('template-modal').classList.add('hidden');
     var bridge = document.getElementById('ai-bridge');
     if (bridge && !bridge.classList.contains('hidden')) toggleAiBridge();
+    closeUserMenu();
   }
+});
+
+// ── USER MENU ──
+function toggleUserMenu() {
+  var menu = document.getElementById('user-menu');
+  if (!menu) return;
+  menu.classList.toggle('open');
+}
+function closeUserMenu() {
+  var menu = document.getElementById('user-menu');
+  if (menu) menu.classList.remove('open');
+}
+document.addEventListener('click', function(e) {
+  var menu = document.getElementById('user-menu');
+  if (menu && !menu.contains(e.target)) closeUserMenu();
 });

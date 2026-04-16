@@ -75,6 +75,7 @@
   <button class="btn" onclick="showTemplateModal()" title="Template VSL para funcionários">Modelo Padrão</button>
   <div class="divider"></div>
   <button class="btn" onclick="openFile()">Abrir</button>
+  {% if user_email %}<button class="btn" onclick="openMyFiles()" title="Arquivos salvos na nuvem">☁ Meus arquivos</button>{% endif %}
   <input type="file" id="file-input2" accept=".html,.htm" style="display:none">
   <button class="btn" onclick="forceRefreshPreview()" title="F5">Atualizar preview</button>
   <div class="divider"></div>
@@ -83,7 +84,26 @@
   <button class="btn" id="btn-unfunnel" onclick="toggleUnfunnelizer()" title="Mostrar página completa sem delays">Unfunnelizar</button>
   <div class="divider"></div>
   <button class="btn" id="btn-undo" onclick="undo()" title="Ctrl+Z — Desfazer última alteração" disabled>↩ Voltar</button>
-  <button class="btn primary" onclick="exportFile()">Exportar HTML</button>
+  <div class="export-wrap" id="export-wrap">
+    <button class="btn primary export-main" onclick="exportDownload()">Exportar HTML</button>
+    <button class="btn primary export-caret" onclick="toggleExportMenu(event)" title="Mais opções">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="export-dropdown">
+      <button class="export-dropdown-item" onclick="exportDownload()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Baixar
+      </button>
+      <button class="export-dropdown-item" onclick="exportCopy()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copiar HTML
+      </button>
+      <button class="export-dropdown-item" onclick="exportSave()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Salvar arquivo
+      </button>
+    </div>
+  </div>
   <div class="divider"></div>
   <div class="divider"></div>
   <button class="btn" id="btn-ai-bridge" onclick="toggleAiBridge()" title="AI Bridge — edite elementos com IA">✦ IA</button>
@@ -91,8 +111,18 @@
   <span id="status-msg"></span>
   {% if user_email %}
   <div class="divider"></div>
-  <span class="user-badge" title="{{ user_email }}">{{ user_email }}</span>
-  <a href="/logout" class="btn btn-logout" title="Sair">Sair</a>
+  <div class="user-menu" id="user-menu" onclick="toggleUserMenu()">
+    <div class="user-avatar">{{ user_email[0]|upper }}</div>
+    <svg class="user-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+    <div class="user-dropdown" id="user-dropdown">
+      <div class="user-dropdown-email">{{ user_email }}</div>
+      <div class="user-dropdown-sep"></div>
+      <a href="/logout" class="user-dropdown-item user-dropdown-item--danger">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sair
+      </a>
+    </div>
+  </div>
   {% endif %}
 </div>
 
@@ -149,6 +179,22 @@
     ></iframe>
   </div>
 
+</div>
+
+<!-- ── MY FILES PANEL ── -->
+<div id="myfiles-panel" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);align-items:center;justify-content:center;z-index:500;backdrop-filter:blur(6px)">
+  <div class="myfiles-card">
+    <div class="myfiles-header">
+      <div>
+        <span class="tpl-title">Meus arquivos</span>
+        <span class="tpl-sub">Salvos na nuvem · clique para carregar</span>
+      </div>
+      <button class="tpl-close" onclick="closeMyFiles()">✕</button>
+    </div>
+    <div id="myfiles-list" class="myfiles-list">
+      <div class="myfiles-empty">Carregando...</div>
+    </div>
+  </div>
 </div>
 
 <!-- ── TEMPLATE MODAL ── -->

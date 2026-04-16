@@ -4,87 +4,133 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DvPages — Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg: #0a0a0f;
-    --surface: #13131a;
-    --surface2: #1a1a24;
-    --border: #22222e;
-    --border2: #2e2e3e;
-    --accent: #e94560;
-    --accent-glow: rgba(233, 69, 96, 0.18);
-    --accent-dim: rgba(233, 69, 96, 0.08);
-    --text: #e0e0e8;
-    --muted: #52526a;
-    --success: #4ade80;
+    --bg:        #07070c;
+    --surface:   #111119;
+    --surface2:  #17171f;
+    --surface3:  #1d1d27;
+    --border:    #1f1f2e;
+    --border2:   #2a2a3d;
+    --accent:    #e8405a;
+    --accent-h:  #ff4d68;
+    --text:      #dddde8;
+    --text2:     #9898b0;
+    --text3:     #55556a;
+    --success:   #34d399;
+    --radius:    10px;
   }
 
+  html { -webkit-font-smoothing: antialiased; }
+
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 24px;
     background-image:
-      radial-gradient(ellipse 60% 40% at 50% -10%, rgba(233,69,96,0.06) 0%, transparent 70%);
+      radial-gradient(ellipse 80% 60% at 50% -15%, rgba(232,64,90,0.09) 0%, transparent 65%),
+      radial-gradient(ellipse 50% 40% at 10% 110%, rgba(79,124,255,0.05) 0%, transparent 55%);
   }
 
   .card {
     width: 100%;
-    max-width: 380px;
+    max-width: 390px;
     background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 40px 36px 36px;
-    box-shadow: 0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    padding: 44px 40px 38px;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.04) inset,
+      0 32px 80px rgba(0,0,0,0.7),
+      0 0 80px rgba(232,64,90,0.05);
   }
 
+  /* Brand */
   .brand {
     text-align: center;
-    margin-bottom: 32px;
+    margin-bottom: 36px;
+  }
+
+  .logo-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(135deg, rgba(232,64,90,0.15), rgba(232,64,90,0.05));
+    border: 1px solid rgba(232,64,90,0.2);
+    border-radius: 14px;
+    margin-bottom: 16px;
   }
 
   .logo {
-    font-size: 30px;
+    font-size: 32px;
     font-weight: 900;
     color: #fff;
-    letter-spacing: -1px;
+    letter-spacing: -1.5px;
     line-height: 1;
-    margin-bottom: 6px;
+    margin-bottom: 7px;
   }
-
   .logo span { color: var(--accent); }
 
   .tagline {
-    font-size: 11px;
-    color: var(--muted);
+    font-size: 11.5px;
+    color: var(--text3);
     letter-spacing: 0.1em;
     text-transform: uppercase;
+    font-weight: 500;
   }
 
+  /* Divider */
   .divider {
     height: 1px;
     background: linear-gradient(to right, transparent, var(--border2), transparent);
-    margin-bottom: 28px;
+    margin-bottom: 30px;
   }
 
-  .field {
-    margin-bottom: 14px;
+  /* Error */
+  .error-msg {
+    background: rgba(232,64,90,0.07);
+    border: 1px solid rgba(232,64,90,0.18);
+    border-radius: 8px;
+    padding: 10px 13px;
+    font-size: 12.5px;
+    color: #ff6b85;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    line-height: 1.4;
   }
+  .error-msg::before {
+    content: "⚠";
+    font-size: 13px;
+    flex-shrink: 0;
+    opacity: 0.8;
+  }
+
+  /* Fields */
+  .field { margin-bottom: 16px; }
 
   label {
     display: block;
     font-size: 11px;
     font-weight: 600;
-    color: var(--muted);
-    letter-spacing: 0.06em;
+    color: var(--text3);
+    letter-spacing: 0.07em;
     text-transform: uppercase;
-    margin-bottom: 6px;
+    margin-bottom: 7px;
   }
 
   input[type="email"],
@@ -92,73 +138,82 @@
     width: 100%;
     background: var(--surface2);
     border: 1px solid var(--border2);
-    border-radius: 8px;
+    border-radius: var(--radius);
     color: var(--text);
-    padding: 10px 14px;
-    font-size: 13.5px;
-    font-family: inherit;
+    padding: 11px 14px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
     outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
-    -webkit-autofill: none;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
   }
-
+  input[type="email"]:hover,
+  input[type="password"]:hover {
+    border-color: #3a3a55;
+  }
   input[type="email"]:focus,
   input[type="password"]:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-dim);
+    background: var(--surface3);
+    box-shadow: 0 0 0 3px rgba(232,64,90,0.1);
   }
+  input::placeholder { color: #30303f; }
 
-  input::placeholder { color: #35354a; }
-
-  .error-msg {
-    background: rgba(233, 69, 96, 0.08);
-    border: 1px solid rgba(233, 69, 96, 0.2);
-    border-radius: 7px;
-    padding: 9px 12px;
-    font-size: 12px;
-    color: #ff6b85;
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-  }
-
-  .error-msg::before {
-    content: "✕";
-    font-size: 10px;
-    font-weight: 700;
-    opacity: 0.7;
-  }
-
+  /* Submit */
   .submit-btn {
     width: 100%;
     background: var(--accent);
     border: none;
-    border-radius: 8px;
-    color: white;
-    font-family: inherit;
-    font-size: 13.5px;
+    border-radius: var(--radius);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
     font-weight: 700;
-    padding: 11px;
+    padding: 12px;
     cursor: pointer;
-    margin-top: 20px;
-    transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
-    letter-spacing: 0.02em;
+    margin-top: 24px;
+    transition: all 0.15s ease;
+    letter-spacing: 0.01em;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(232,64,90,0.35);
   }
-
+  .submit-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 50%);
+  }
   .submit-btn:hover {
-    background: #d13350;
-    box-shadow: 0 4px 20px rgba(233,69,96,0.35);
+    background: var(--accent-h);
+    box-shadow: 0 6px 28px rgba(232,64,90,0.5);
+    transform: translateY(-1px);
+  }
+  .submit-btn:active {
+    transform: scale(0.98) translateY(0);
+    box-shadow: 0 2px 10px rgba(232,64,90,0.3);
   }
 
-  .submit-btn:active { transform: scale(0.985); }
-
+  /* Footer */
   .footer-note {
     text-align: center;
     font-size: 11px;
-    color: #2a2a3a;
-    margin-top: 24px;
-    letter-spacing: 0.03em;
+    color: var(--text3);
+    margin-top: 22px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .footer-note::before,
+  .footer-note::after {
+    content: '';
+    height: 1px;
+    width: 28px;
+    background: var(--border2);
+    display: inline-block;
   }
 </style>
 </head>
@@ -183,12 +238,12 @@
     </div>
     <div class="field">
       <label for="password">Senha</label>
-      <input type="password" id="password" name="password" placeholder="••••••••" required>
+      <input type="password" id="password" name="password" placeholder="••••••••••" required>
     </div>
     <button class="submit-btn" type="submit">Entrar</button>
   </form>
 
-  <div class="footer-note">Acesso restrito — apenas usuários cadastrados</div>
+  <div class="footer-note">Acesso restrito</div>
 </div>
 
 </body>

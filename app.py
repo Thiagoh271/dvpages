@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, redirect, url_for
+from flask import Flask, render_template, request, session, redirect, url_for, jsonify
 from functools import wraps
 import os
 
@@ -58,6 +58,48 @@ def logout():
 def index():
     user_email = session.get('user_email', '')
     return render_template('index.html', user_email=user_email)
+
+@app.route('/api/save', methods=['POST'])
+@login_required
+def api_save():
+    if not supabase:
+        return jsonify({'error': 'storage indisponível'}), 503
+    data = request.get_json(force=True)
+    filename = (data.get('filename') or 'sem-titulo.html').strip()
+    html = data.get('html', '')
+    user_id = session['user_id']
+    try:
+        supabase.table('pages').upsert(
+            {'user_id': user_id, 'filename': filename, 'html': html, 'updated_at': 'now()'},
+            on_conflict='user_id,filename'
+        ).execute()
+        return jsonify({'ok': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/files')
+@login_required
+def api_files():
+    if not supabase:
+        return jsonify([])
+    user_id = session['user_id']
+    try:
+        res = supabase.table('pages').select('id,filename,updated_at').eq('user_id', user_id).order('updated_at', desc=True).execute()
+        return jsonify(res.data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/load/<file_id>')
+@login_required
+def api_load(file_id):
+    if not supabase:
+        return jsonify({'error': 'storage indisponível'}), 503
+    user_id = session['user_id']
+    try:
+        res = supabase.table('pages').select('filename,html').eq('id', file_id).eq('user_id', user_id).single().execute()
+        return jsonify(res.data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     print("DvPages rodando em http://localhost:5051")
