@@ -59,19 +59,6 @@ def index():
     user_email = session.get('user_email', '')
     return render_template('index.html', user_email=user_email)
 
-@app.route('/_debug')
-def debug():
-    import json
-    return app.response_class(
-        json.dumps({
-            'auth_required': AUTH_REQUIRED,
-            'supabase_url': bool(SUPABASE_URL),
-            'supabase_key': bool(SUPABASE_KEY),
-            'supabase_client': supabase is not None,
-        }),
-        mimetype='application/json'
-    )
-
 if __name__ == '__main__':
     print("DvPages rodando em http://localhost:5051")
     app.run(debug=True, port=5051)
