@@ -8,36 +8,44 @@ app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-change-in-prod')
 SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
 SUPABASE_KEY = os.environ.get('SUPABASE_ANON_KEY', '')
 
+AUTH_REQUIRED = bool(SUPABASE_URL and SUPABASE_KEY)
+
 supabase = None
-if SUPABASE_URL and SUPABASE_KEY:
-    from supabase import create_client
-    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+if AUTH_REQUIRED:
+    try:
+        from supabase import create_client
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    except Exception as e:
+        print(f"[dvpages] Supabase init error: {e}")
 
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        if supabase and 'user_id' not in session:
+        if AUTH_REQUIRED and 'user_id' not in session:
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if not supabase:
+    if not AUTH_REQUIRED:
         return redirect(url_for('index'))
     if 'user_id' in session:
         return redirect(url_for('index'))
     error = None
     if request.method == 'POST':
-        email = request.form.get('email', '').strip()
-        password = request.form.get('password', '')
-        try:
-            res = supabase.auth.sign_in_with_password({'email': email, 'password': password})
-            session['user_id'] = res.user.id
-            session['user_email'] = res.user.email
-            return redirect(url_for('index'))
-        except Exception:
-            error = 'Email ou senha inválidos'
+        if supabase is None:
+            error = 'Erro interno — tente novamente em instantes'
+        else:
+            email = request.form.get('email', '').strip()
+            password = request.form.get('password', '')
+            try:
+                res = supabase.auth.sign_in_with_password({'email': email, 'password': password})
+                session['user_id'] = res.user.id
+                session['user_email'] = res.user.email
+                return redirect(url_for('index'))
+            except Exception:
+                error = 'Email ou senha inválidos'
     return render_template('login.html', error=error)
 
 @app.route('/logout')
