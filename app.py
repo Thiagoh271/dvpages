@@ -18,6 +18,20 @@ if AUTH_REQUIRED:
     except Exception as e:
         print(f"[dvpages] Supabase init error: {e}")
 
+def get_user_client():
+    if not AUTH_REQUIRED or not SUPABASE_URL or not SUPABASE_KEY:
+        return None
+    try:
+        from supabase import create_client
+        client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        token = session.get('access_token', '')
+        refresh = session.get('refresh_token', '')
+        if token:
+            client.auth.set_session(token, refresh)
+        return client
+    except Exception:
+        return None
+
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -43,6 +57,8 @@ def login():
                 res = supabase.auth.sign_in_with_password({'email': email, 'password': password})
                 session['user_id'] = res.user.id
                 session['user_email'] = res.user.email
+                session['access_token'] = res.session.access_token
+                session['refresh_token'] = res.session.refresh_token
                 return redirect(url_for('index'))
             except Exception:
                 error = 'Email ou senha inválidos'
@@ -62,14 +78,15 @@ def index():
 @app.route('/api/save', methods=['POST'])
 @login_required
 def api_save():
-    if not supabase:
+    db = get_user_client()
+    if not db:
         return jsonify({'error': 'storage indisponível'}), 503
     data = request.get_json(force=True)
     filename = (data.get('filename') or 'sem-titulo.html').strip()
     html = data.get('html', '')
     user_id = session['user_id']
     try:
-        supabase.table('pages').upsert(
+        db.table('pages').upsert(
             {'user_id': user_id, 'filename': filename, 'html': html, 'updated_at': 'now()'},
             on_conflict='user_id,filename'
         ).execute()
@@ -80,11 +97,12 @@ def api_save():
 @app.route('/api/files')
 @login_required
 def api_files():
-    if not supabase:
+    db = get_user_client()
+    if not db:
         return jsonify([])
     user_id = session['user_id']
     try:
-        res = supabase.table('pages').select('id,filename,updated_at').eq('user_id', user_id).order('updated_at', desc=True).execute()
+        res = db.table('pages').select('id,filename,updated_at').eq('user_id', user_id).order('updated_at', desc=True).execute()
         return jsonify(res.data)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -92,11 +110,12 @@ def api_files():
 @app.route('/api/load/<file_id>')
 @login_required
 def api_load(file_id):
-    if not supabase:
+    db = get_user_client()
+    if not db:
         return jsonify({'error': 'storage indisponível'}), 503
     user_id = session['user_id']
     try:
-        res = supabase.table('pages').select('filename,html').eq('id', file_id).eq('user_id', user_id).single().execute()
+        res = db.table('pages').select('filename,html').eq('id', file_id).eq('user_id', user_id).single().execute()
         return jsonify(res.data)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
