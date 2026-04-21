@@ -10,7 +10,17 @@
       "Bash(git add *)",
       "Bash(git rm *)",
       "Bash(git commit -m ' *)",
-      "Bash(git config *)"
+      "Bash(git config *)",
+      "Bash(gh repo *)",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__click",
+      "mcp__chrome-devtools__wait_for",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__chrome-devtools__fill",
+      "Bash(xargs ls *)",
+      "Bash(vercel env *)",
+      "Bash(curl -sf https://dvpages.vercel.app/_debug)",
+      "mcp__chrome-devtools__select_page"
     ]
   }
 }
